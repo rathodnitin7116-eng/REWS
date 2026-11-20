@@ -1,0 +1,1 @@
+Sample finance summary for REWS monitoring demonstration.

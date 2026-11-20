@@ -1,0 +1,1 @@
+Sample meeting notes used for folder monitoring tests.

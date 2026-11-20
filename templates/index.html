@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>REWS | Security Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="cyber-theme">
+<div class="cyber-scanlines"></div>
+<div class="cyber-grid-overlay"></div>
+
+<div class="app-shell">
+  <!-- CYBER SOC SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-glitch">
+        <div class="brand-mark">
+          <span class="mark-core">R</span>
+          <span class="mark-glow"></span>
+        </div>
+      </div>
+      <div class="brand-meta">
+        <div class="brand-title">REWS<span class="neon-tag">SOC</span></div>
+        <small class="brand-sub">SENTINEL-X // HOST-IDS</small>
+      </div>
+    </div>
+
+    <div class="threat-matrix-card">
+      <div class="matrix-header">
+        <span>SECURITY POSTURE</span>
+        <span class="matrix-ping" id="matrixPulse"></span>
+      </div>
+      <div class="threat-level" id="threatLevelBadge">DEFCON 5 // NORMAL</div>
+      <div class="threat-bar">
+        <div class="threat-fill" id="threatBarFill" style="width: 0%"></div>
+      </div>
+      <div class="matrix-stats">
+        <span>SURVEILLANCE: <b id="survState" class="neon-green">ACTIVE</b></span>
+        <span>DAEMON: <b class="neon-cyan">LIVE</b></span>
+      </div>
+    </div>
+
+    <div class="workspace-label">// CONTROL INTERFACES</div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="overview">
+        <span class="nav-icon">⬡</span>
+        <span class="nav-label">Command Center</span>
+      </button>
+      <button class="nav-item" data-view="monitor">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Live Monitor</span>
+        <span class="nav-live-pulse" id="navLive"></span>
+      </button>
+      <button class="nav-item" data-view="inventory">
+        <span class="nav-icon">⌕</span>
+        <span class="nav-label">SHA-256 Forensics</span>
+      </button>
+      <button class="nav-item" data-view="alerts">
+        <span class="nav-icon">⚠</span>
+        <span class="nav-label">Incident Register</span>
+        <em class="alert-pill" id="navAlertCount">0</em>
+      </button>
+      <button class="nav-item" data-view="history">
+        <span class="nav-icon">◷</span>
+        <span class="nav-label">Scan History</span>
+      </button>
+
+      <div class="nav-divider"></div>
+      <div class="workspace-label">// THREAT INTELLIGENCE</div>
+      <button class="nav-item" data-view="guide">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Threat Intel Guide</span>
+      </button>
+      <button class="nav-item" data-view="reports">
+        <span class="nav-icon">⇩</span>
+        <span class="nav-label">Forensic Reports</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Heuristic Config</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="quick-terminal-toggle">
+        <div class="terminal-dot" id="connDot"></div>
+        <div class="terminal-meta">
+          <b id="connection">CONNECTED // HOST ONLINE</b>
+          <small>Flask v3.0 · SQLite · Local Agent</small>
+        </div>
+      </div>
+      <div class="crypto-watermark">
+        <span>REWS v2.4.0-ACADEMIC</span>
+        <span class="crypto-hash">SHA:256_ACTIVE</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN SECURITY DASHBOARD -->
+  <main class="main-area">
+    <!-- TOP TACTICAL BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu" id="menuBtn">☰</button>
+        <div class="crumb">
+          <span class="crumb-brand">REWS_SENTINEL</span>
+          <b class="crumb-sep">/</b>
+          <strong id="crumbTitle">Command Center</strong>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="terminal-ticker">
+          <span class="ticker-prefix">[SOC-NODE-01]</span>
+          <span class="ticker-text" id="telemetryTicker">HEURISTIC ENGINES ARMED · REAL-TIME VELOCITY SENTINEL ACTIVE</span>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <div class="system-state">
+          <span class="state-dot" id="topStateDot"></span>
+          <span id="topState">MONITORING STOPPED</span>
+        </div>
+        <button class="cyber-btn-icon" id="soundToggle" title="Toggle Cyber Audio Synthesizer">
+          <span id="soundIcon">🔊</span> SFX
+        </button>
+        <button class="cyber-btn-icon" id="refreshBtn" title="Force Refresh Telemetry">↻</button>
+        <div class="cyber-operator-badge">
+          <span class="op-avatar">SEC</span>
+          <span class="op-name">OPERATOR</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- FOLDER STATUS BANNER -->
+    <div class="scope-banner" id="scopeBanner">
+      <div class="scope-icon">🎯</div>
+      <div class="scope-content">
+        <div class="scope-title">MONITORED TARGET REPOSITORY</div>
+        <div class="scope-path" id="scopeBannerPath">Checking target path...</div>
+      </div>
+      <div class="scope-actions">
+        <button class="cyber-btn cyber-btn-outline sm" id="bannerUseDemo">Use Safe Demo Folder</button>
+        <button class="cyber-btn cyber-btn-danger sm" id="bannerSimulate">⚡ Simulate Attack</button>
+      </div>
+    </div>
+
+    <div class="page-wrap">
+      <!-- ==================== VIEW 1: OVERVIEW / COMMAND CENTER ==================== -->
+      <section class="view active" id="view-overview">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// REWS THREAT OPERATIONS CENTER</div>
+            <h1>Command Center</h1>
+            <p>Real-time ransomware telemetry, behavioral heuristic indicators, and breach defense posture.</p>
+          </div>
+          <div class="heading-actions">
+            <button class="cyber-btn cyber-btn-outline" data-go="reports">Export Forensics ↗</button>
+            <button class="cyber-btn cyber-btn-primary" data-go="monitor">Open Live Monitor ◉</button>
+          </div>
+        </div>
+
+        <!-- TACTICAL METRIC TILES -->
+        <div class="metric-grid">
+          <article class="metric-card cyan">
+            <div class="metric-top">
+              <span>TARGET INVENTORY</span>
+              <span class="metric-icon cyan">▤</span>
+            </div>
+            <strong id="mFiles">—</strong>
+            <small id="mScope">No folder selected</small>
+            <div class="metric-corner"></div>
+          </article>
+
+          <article class="metric-card amber">
+            <div class="metric-top">
+              <span>ACTIVE INCIDENTS</span>
+              <span class="metric-icon amber">⚠</span>
+            </div>
+            <strong id="mOpen">0</strong>
+            <small>Require operator verification</small>
+            <div class="metric-corner"></div>
+          </article>
+
+          <article class="metric-card red">
+            <div class="metric-top">
+              <span>CRITICAL ALARMS</span>
+              <span class="metric-icon red">!</span>
+            </div>
+            <strong id="mCritical">0</strong>
+            <small>High-priority ransomware indicators</small>
+            <div class="metric-corner"></div>
+          </article>
+
+          <article class="metric-card violet">
+            <div class="metric-top">
+              <span>THREAT SEVERITY SCORE</span>
+              <span class="metric-icon violet">◈</span>
+            </div>
+            <strong><span id="mRisk">0</span><sup>%</sup></strong>
+            <small>Heuristic dynamic risk gauge</small>
+            <div class="metric-corner"></div>
+          </article>
+        </div>
+
+        <!-- RADAR & ALERT DISTRIBUTION -->
+        <div class="overview-grid">
+          <!-- LIVE SURVEILLANCE RADAR CARD -->
+          <article class="cyber-card monitor-card">
+            <div class="card-head">
+              <div>
+                <h2>Host Early Warning Radar</h2>
+                <p>Continuous filesystem heuristic surveillance</p>
+              </div>
+              <span class="status-chip stopped" id="overviewStatus">STOPPED</span>
+            </div>
+
+            <div class="radar-hud-container">
+              <div class="radar-hud" id="radarHud">
+                <div class="radar-circle c1"></div>
+                <div class="radar-circle c2"></div>
+                <div class="radar-circle c3"></div>
+                <div class="radar-crosshair-x"></div>
+                <div class="radar-crosshair-y"></div>
+                <div class="radar-sweep" id="radarSweep"></div>
+                <div class="radar-center-blip"></div>
+              </div>
+            </div>
+
+            <div class="monitor-empty" id="monitorEmpty">
+              <b>SURVEILLANCE DAEMON IDLE</b>
+              <p>Target folder is not being monitored. Initiate monitoring to detect encryption bursts and ransomware suffixes.</p>
+              <button class="cyber-btn cyber-btn-primary" data-go="monitor">Arm Sentinel Monitor</button>
+            </div>
+
+            <div class="monitor-active hidden" id="monitorActive">
+              <div class="active-path" id="activePath">—</div>
+              <div class="active-meta-grid">
+                <div><span>Baseline Objects</span><b id="activeFiles">0</b></div>
+                <div><span>Polling Rate</span><b id="activeInterval">3 sec</b></div>
+                <div><span>Last Telemetry</span><b id="lastPoll">—</b></div>
+              </div>
+              <button class="cyber-btn cyber-btn-danger" id="overviewStop">Disarm Surveillance</button>
+            </div>
+          </article>
+
+          <!-- ALERT SEVERITY MATRIX -->
+          <article class="cyber-card activity-card">
+            <div class="card-head">
+              <div>
+                <h2>Threat Severity Matrix</h2>
+                <p>Incident classification breakdown</p>
+              </div>
+              <button class="more-btn" data-go="alerts">Full Register ↗</button>
+            </div>
+
+            <div class="distribution">
+              <div class="donut-wrap">
+                <div class="donut" id="donut">
+                  <div>
+                    <b id="donutTotal">0</b>
+                    <small>INCIDENTS</small>
+                  </div>
+                </div>
+              </div>
+              <div class="legend">
+                <div class="legend-row"><i class="dot critical"></i><span>Critical [Ransom/Burst]</span><b id="cCritical">0</b></div>
+                <div class="legend-row"><i class="dot high"></i><span>High [Suspicious Ext]</span><b id="cHigh">0</b></div>
+                <div class="legend-row"><i class="dot medium"></i><span>Medium [Script/Delete]</span><b id="cMedium">0</b></div>
+                <div class="legend-row"><i class="dot low"></i><span>Low [File Mutate/Create]</span><b id="cLow">0</b></div>
+              </div>
+            </div>
+
+            <div class="mitre-banner">
+              <span class="mitre-tag">MITRE ATT&CK T1486</span>
+              <span>Data Encrypted for Impact Detection Engine Online</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- RECENT SECURITY EVENTS TABLE -->
+        <article class="cyber-card">
+          <div class="card-head">
+            <div>
+              <h2>Recent Security Events</h2>
+              <p>Real-time threat log recorded by REWS Sentinel</p>
+            </div>
+            <button class="more-btn" data-go="alerts">View Register ↗</button>
+          </div>
+          <div class="table-wrap">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>INCIDENT EVENT</th>
+                  <th>CLASSIFICATION</th>
+                  <th>SEVERITY</th>
+                  <th>TIMESTAMP</th>
+                  <th>DEFENSE STATE</th>
+                </tr>
+              </thead>
+              <tbody id="recentRows">
+                <tr><td colspan="5" class="empty">No events recorded. Start monitoring or trigger the simulation lab.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- RED TEAM ATTACK LAB QUICK BAR -->
+        <div class="cyber-terminal-card">
+          <div class="terminal-bar">
+            <div class="term-dots"><span></span><span></span><span></span></div>
+            <div class="term-title">RED TEAM RANSOMWARE STRIKE SIMULATOR // ACADEMIC DEMONSTRATION</div>
+            <div class="term-status">READY</div>
+          </div>
+          <div class="terminal-body">
+            <p class="term-desc">
+              Demonstrate REWS live to teachers or evaluators. Trigger a simulated multi-stage ransomware attack in the safe demo folder to observe real-time detection of burst file encryption, extension appending (<code class="code-tag">.locked</code>, <code class="code-tag">.crypt</code>), and ransom extortion notes.
+            </p>
+            <div class="quick-attack-actions">
+              <button class="cyber-btn cyber-btn-danger" id="quickSimulateAttack">
+                <span>☣</span> Run Multi-Stage Ransomware Attack
+              </button>
+              <button class="cyber-btn cyber-btn-amber" id="quickDemoChange">
+                <span>⚡</span> Trigger Rapid File Burst (9 Changes)
+              </button>
+              <button class="cyber-btn cyber-btn-success" id="quickResetLab">
+                <span>🛡️</span> Sanitize & Restore Clean Baseline
+              </button>
+              <button class="cyber-btn cyber-btn-outline" id="quickDemo">
+                <span>⚗</span> Legacy Demo Event
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ACCESS TILES -->
+        <div class="quick-grid">
+          <button class="quick-card" data-go="inventory">
+            <span class="quick-icon">⌕</span>
+            <b>Forensic SHA-256 Inspection</b>
+            <small>Scan folder, extract metadata, verify hashes</small>
+            <span class="quick-arrow">→</span>
+          </button>
+          <button class="quick-card" data-go="monitor">
+            <span class="quick-icon">◉</span>
+            <b>Real-time Daemon Monitor</b>
+            <small>Continuous file creation, modification & deletion tracking</small>
+            <span class="quick-arrow">→</span>
+          </button>
+          <button class="quick-card" data-go="guide">
+            <span class="quick-icon">◈</span>
+            <b>Cyber Threat Intel Guide</b>
+            <small>Review ransomware mechanics, T1486 & defense posture</small>
+            <span class="quick-arrow">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 2: LIVE MONITOR ==================== -->
+      <section class="view" id="view-monitor">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// CONTINUOUS HEURISTIC SURVEILLANCE</div>
+            <h1>Live Monitor</h1>
+            <p>Monitors target directory for rapid file modifications, ransomware suffixes, and extortion notes.</p>
+          </div>
+          <span class="status-chip stopped" id="monitorPageStatus">STOPPED</span>
+        </div>
+
+        <div class="cyber-card monitor-config">
+          <div class="card-head">
+            <div>
+              <h2>Surveillance Daemon Configuration</h2>
+              <p>REWS monitors only the specified path and its subdirectories with zero cloud telemetry.</p>
+            </div>
+            <span class="tag">ISOLATED LOCAL HOST-IDS</span>
+          </div>
+
+          <label class="field-label" for="monitorPath">// TARGET REPOSITORY PATH</label>
+          <div class="input-row">
+            <input id="monitorPath" type="text" placeholder="e.g. C:\Users\Username\Documents">
+            <button class="cyber-btn cyber-btn-outline" id="fillDemoMonitor" type="button" title="Load safe demo workspace">Demo Workspace</button>
+            <button class="cyber-btn cyber-btn-primary" id="startMonitor">Start Monitoring</button>
+            <button class="cyber-btn cyber-btn-danger" id="stopMonitor" disabled>Stop</button>
+          </div>
+          <div class="hint">
+            💡 <b>Safety Tip:</b> Use the built-in <b>data/demo_workspace</b> folder for demonstration. Never monitor operating system critical folders like C:\Windows.
+          </div>
+
+          <div class="monitor-stats">
+            <div><small>BASELINE ASSETS</small><b id="monFiles">—</b></div>
+            <div><small>SAMPLING FREQUENCY</small><b id="monInterval">3 sec</b></div>
+            <div><small>LATEST POLLING TICK</small><b id="monLastPoll">—</b></div>
+            <div><small>VELOCITY BURST TRIGGER</small><b id="monBurstThreshold">8 changes/tick</b></div>
+          </div>
+        </div>
+
+        <!-- HACKER TERMINAL TELEMETRY CONSOLE -->
+        <div class="cyber-terminal-card">
+          <div class="terminal-bar">
+            <div class="term-dots"><span></span><span></span><span></span></div>
+            <div class="term-title">SOC SENTINEL // REAL-TIME INODE TELEMETRY STREAM</div>
+            <div class="term-status" id="termLiveIndicator">LIVE FEED</div>
+          </div>
+          <div class="terminal-body console-body">
+            <div id="liveEvents" class="event-feed">
+              <div class="empty-state">No file events observed yet. Start monitoring and make changes in the target directory.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE DEMO CONTROLS -->
+        <div class="cyber-card demo-panel">
+          <div class="demo-symbol">☣</div>
+          <div class="demo-details">
+            <h2>Red Team Live Simulation Lab</h2>
+            <p>Generate controlled ransomware indicators to test and verify the early warning detection pipeline in front of evaluators.</p>
+          </div>
+          <div class="demo-buttons">
+            <button class="cyber-btn cyber-btn-danger" id="monitorSimulateAttack">Simulate Attack</button>
+            <button class="cyber-btn cyber-btn-amber" id="demoChange">Trigger Burst</button>
+            <button class="cyber-btn cyber-btn-success" id="monitorResetDemo">Reset Folder</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 3: FILE INVENTORY / FORENSICS ==================== -->
+      <section class="view" id="view-inventory">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// CRYPTOGRAPHIC INTEGRITY AUDIT</div>
+            <h1>File Inventory & Forensics</h1>
+            <p>Perform deep cryptographic scans, compute SHA-256 signatures, and flag ransomware extensions.</p>
+          </div>
+          <button class="cyber-btn cyber-btn-primary" id="runScan">Run Deep Inspection</button>
+        </div>
+
+        <div class="cyber-card scan-config">
+          <div class="field-grow">
+            <label class="field-label" for="scanPath">// TARGET REPOSITORY TO SCAN</label>
+            <div class="input-row">
+              <input id="scanPath" placeholder="Enter target directory path">
+              <button class="cyber-btn cyber-btn-outline" id="fillDemoScan" type="button" title="Load demo workspace">Demo Workspace</button>
+            </div>
+          </div>
+          <div class="scan-note">
+            <span>🔐 SHA-256 verification computes cryptographic fingerprints to detect unauthorized content tampering and file encryption.</span>
+          </div>
+        </div>
+
+        <div class="metric-grid compact">
+          <article class="metric-card cyan">
+            <div class="metric-top"><span>OBJECTS AUDITED</span><span class="metric-icon cyan">▤</span></div>
+            <strong id="scanFiles">—</strong>
+            <small>Active scan result</small>
+          </article>
+          <article class="metric-card amber">
+            <div class="metric-top"><span>FLAGGED ANOMALIES</span><span class="metric-icon amber">⚠</span></div>
+            <strong id="scanFlagged">—</strong>
+            <small>Heuristic rule triggers</small>
+          </article>
+          <article class="metric-card violet">
+            <div class="metric-top"><span>TOTAL VOLUME</span><span class="metric-icon violet">◫</span></div>
+            <strong id="scanSize">—</strong>
+            <small>Bytes verified</small>
+          </article>
+        </div>
+
+        <div class="cyber-card">
+          <div class="card-head">
+            <div>
+              <h2>Audited Files & Cryptographic Fingerprints</h2>
+              <p id="scanResultCaption">Initiate a deep scan to populate inventory.</p>
+            </div>
+            <input class="cyber-input search-input" id="fileSearch" placeholder="Filter by filename, extension...">
+          </div>
+          <div class="table-wrap">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>FILE NAME</th>
+                  <th>RELATIVE PATH</th>
+                  <th>FILE SIZE</th>
+                  <th>SHA-256 CRYPTOGRAPHIC HASH</th>
+                  <th>HEURISTIC STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="fileRows">
+                <tr><td colspan="5" class="empty">No scan results loaded. Click 'Run Deep Inspection'.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 4: SECURITY ALERTS ==================== -->
+      <section class="view" id="view-alerts">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// INCIDENT RESPONSE REGISTER</div>
+            <h1>Security Alerts</h1>
+            <p>Filter, investigate, and triage suspicious activity alarms raised by REWS heuristics.</p>
+          </div>
+          <div class="heading-actions">
+            <button class="cyber-btn cyber-btn-danger" id="clearAlerts">Purge All Alerts</button>
+            <button class="cyber-btn cyber-btn-outline" id="ackAll">Acknowledge All Open</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input id="alertSearch" class="cyber-input search-input" placeholder="Search by title, category, filename...">
+          <select id="severityFilter" class="cyber-select">
+            <option value="all">All Severities</option>
+            <option>Critical</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <select id="statusFilter" class="cyber-select">
+            <option value="all">All Statuses</option>
+            <option>Open</option>
+            <option>Acknowledged</option>
+          </select>
+        </div>
+
+        <div class="cyber-card">
+          <div class="table-wrap">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>ID / TIME</th>
+                  <th>THREAT EVENT</th>
+                  <th>CATEGORY</th>
+                  <th>SEVERITY</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="alertRows">
+                <tr><td colspan="6" class="empty">No incidents logged.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cyber-card detail-card hidden" id="alertDetail">
+          <div class="card-head">
+            <div>
+              <h2 id="detailTitle">Forensic Incident Detail</h2>
+              <p id="detailSub"></p>
+            </div>
+            <button class="close-btn" id="closeDetail">×</button>
+          </div>
+          <p id="detailText" class="detail-body-text"></p>
+          <div class="path-box">
+            <span class="path-lbl">AFFECTED ARTIFACT:</span>
+            <code id="detailPath"></code>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 5: SCAN HISTORY ==================== -->
+      <section class="view" id="view-history">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// HISTORICAL AUDIT LOG</div>
+            <h1>Scan History</h1>
+            <p>Review previously executed folder inspections, flagged counts, and historical audit records.</p>
+          </div>
+          <div class="heading-actions">
+            <button class="cyber-btn cyber-btn-danger" id="clearHistory">Clear History</button>
+            <button class="cyber-btn cyber-btn-primary" data-go="inventory">Initiate New Scan</button>
+          </div>
+        </div>
+
+        <div class="cyber-card">
+          <div class="table-wrap">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>SCAN ID</th>
+                  <th>AUDIT TIMESTAMP</th>
+                  <th>TARGET REPOSITORY</th>
+                  <th>ASSETS</th>
+                  <th>FLAGGED</th>
+                  <th>VOLUME</th>
+                  <th>FORENSICS</th>
+                </tr>
+              </thead>
+              <tbody id="historyRows">
+                <tr><td colspan="7" class="empty">No historical scans recorded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cyber-card hidden" id="historyDetail">
+          <div class="card-head">
+            <div>
+              <h2>Archived Inspection Details</h2>
+              <p id="historyCaption"></p>
+            </div>
+            <button class="close-btn" id="closeHistory">×</button>
+          </div>
+          <div class="table-wrap">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>FILE</th>
+                  <th>SIZE</th>
+                  <th>SHA-256 HASH</th>
+                  <th>HEURISTIC FLAGS</th>
+                </tr>
+              </thead>
+              <tbody id="historyFiles"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 6: THREAT GUIDE ==================== -->
+      <section class="view" id="view-guide">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// ACADEMIC SECURITY KNOWLEDGE BASE</div>
+            <h1>Cyber Threat Intelligence Guide</h1>
+            <p>Understanding ransomware attack vectors, MITRE ATT&CK T1486, and heuristic early warning mechanisms.</p>
+          </div>
+        </div>
+
+        <div class="guide-hero">
+          <div class="hero-content">
+            <span class="tag tag-neon">MITRE ATT&CK FRAMEWORK // T1486</span>
+            <h2>How Ransomware Works & Why REWS Matters</h2>
+            <p>
+              Ransomware is malicious software designed to deny access to computer systems and personal files by encrypting them with military-grade cryptography (AES-256, ChaCha20, RSA-4096) and demanding an extortion payment in cryptocurrency. Traditional signature-based antivirus frequently misses novel or zero-day ransomware. REWS provides an essential defensive layer: <b>Behavioral & Heuristic Early Warning</b>.
+            </p>
+          </div>
+          <div class="guide-shield">🛡️</div>
+        </div>
+
+        <div class="guide-grid">
+          <article class="cyber-card guide-card">
+            <span class="guide-number">01</span>
+            <h2>Rapid Mutation Bursts</h2>
+            <p>Ransomware engines automate bulk encryption, altering dozens or hundreds of files within seconds. REWS tracks the velocity of file alterations; when change rates exceed the burst threshold, an immediate Critical Alert is triggered.</p>
+          </article>
+
+          <article class="cyber-card guide-card">
+            <span class="guide-number">02</span>
+            <h2>Suspicious Extensions</h2>
+            <p>Strains such as LockBit, WannaCry, and BlackCat append recognizable or double suffixes (<code class="code-tag">.locked</code>, <code class="code-tag">.crypt</code>, <code class="code-tag">.docx.locked</code>). REWS inspects filename patterns and alerts operators instantly.</p>
+          </article>
+
+          <article class="cyber-card guide-card">
+            <span class="guide-number">03</span>
+            <h2>Extortion Ransom Notes</h2>
+            <p>Attackers drop text or HTML files instructing victims on ransom payments (<code class="code-tag">HOW_TO_RESTORE_FILES.txt</code>). REWS monitors regex patterns to catch and flag ransom note creation before widespread encryption completes.</p>
+          </article>
+
+          <article class="cyber-card guide-card">
+            <span class="guide-number">04</span>
+            <h2>Cryptographic SHA-256 Baselines</h2>
+            <p>By computing cryptographic SHA-256 digests, REWS maintains an immutable baseline of monitored assets. Any unauthorized bit flips or mass encryptions immediately alter the cryptographic digest.</p>
+          </article>
+
+          <article class="cyber-card guide-card">
+            <span class="guide-number">05</span>
+            <h2>Defense-in-Depth & 3-2-1 Backups</h2>
+            <p>Early warning is vital, but recovery demands resilience. Organizations must maintain the 3-2-1 backup rule: 3 copies of data, 2 different media types, and 1 immutable or offline air-gapped copy immune to network ransomware.</p>
+          </article>
+
+          <article class="cyber-card guide-card">
+            <span class="guide-number">06</span>
+            <h2>Incident Response Procedures</h2>
+            <p>Upon alert confirmation: 1. Isolate infected host from local network immediately. 2. Preserve volatile memory and audit logs for digital forensics. 3. Engage security responders and never pay ransoms without expert guidance.</p>
+          </article>
+        </div>
+
+        <div class="notice">
+          <b>Academic Scope Disclaimer:</b> REWS is an educational host-based heuristic monitoring prototype. It observes explicitly targeted directories, calculates hashes, and flags behavioral anomalies. It does not replace full-featured enterprise EDR agents or antivirus software.
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 7: REPORTS ==================== -->
+      <section class="view" id="view-reports">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// FORENSIC EVIDENCE ARTIFACTS</div>
+            <h1>Forensic Security Reports</h1>
+            <p>Export structured incident evidence, telemetry summaries, and printable documentation for grading and review.</p>
+          </div>
+        </div>
+
+        <div class="report-grid">
+          <article class="cyber-card report-card">
+            <div class="report-icon cyan">JSON</div>
+            <h2>Full Security Report</h2>
+            <p>Complete machine-readable JSON archive containing monitoring state, active alert register, heuristic settings, and scan logs.</p>
+            <a class="cyber-btn cyber-btn-primary" href="/api/report.json">Download JSON Report ↓</a>
+          </article>
+
+          <article class="cyber-card report-card">
+            <div class="report-icon green">CSV</div>
+            <h2>Alert Register Export</h2>
+            <p>Structured tabular CSV file of all logged security events, timestamps, file paths, and severity rankings for spreadsheet analysis.</p>
+            <a class="cyber-btn cyber-btn-outline" href="/api/report.csv">Export Alert CSV ↓</a>
+          </article>
+
+          <article class="cyber-card report-card">
+            <div class="report-icon violet">PDF</div>
+            <h2>Printable SOC Audit Report</h2>
+            <p>Clean printable HTML audit summary formatted for direct submission or saving as PDF via browser print dialog.</p>
+            <a class="cyber-btn cyber-btn-outline" href="/api/report/print" target="_blank">Open Printable Report ↗</a>
+          </article>
+        </div>
+
+        <div class="cyber-card">
+          <div class="card-head">
+            <div>
+              <h2>Audit Report Verification Checklist</h2>
+              <p>Forensic standards met by REWS exports</p>
+            </div>
+          </div>
+          <div class="report-checks">
+            <span>✓ Host surveillance scope and directory path logged</span>
+            <span>✓ Chronological event timestamps with UTC offsets</span>
+            <span>✓ SHA-256 cryptographic hashes for non-repudiation</span>
+            <span>✓ Heuristic trigger categories and severity classifications</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 8: SETTINGS ==================== -->
+      <section class="view" id="view-settings">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">// DETECTION ENGINE TUNING</div>
+            <h1>Heuristic Settings</h1>
+            <p>Fine-tune behavioral burst thresholds, sampling frequency, and scan resource caps.</p>
+          </div>
+        </div>
+
+        <div class="cyber-card settings-card">
+          <div class="card-head">
+            <div>
+              <h2>Detection Sensitivity Parameters</h2>
+              <p>Adjust heuristic parameters according to workload profile.</p>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <b>Rapid File-Change Burst Threshold</b>
+              <p>Number of file mutations within one polling window that triggers a Critical Alert.</p>
+            </div>
+            <input type="number" id="thresholdSetting" min="3" max="200" class="cyber-input sm">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <b>Surveillance Polling Frequency</b>
+              <p>Interval in seconds between directory state checks. Lower values catch attacks faster.</p>
+            </div>
+            <select id="intervalSetting" class="cyber-select sm">
+              <option value="2">2 seconds (High Sensitivity)</option>
+              <option value="3">3 seconds (Standard Recommended)</option>
+              <option value="5">5 seconds (Low CPU Overhead)</option>
+              <option value="10">10 seconds</option>
+              <option value="15">15 seconds</option>
+              <option value="30">30 seconds</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <b>Maximum Files Per Deep Scan</b>
+              <p>Upper bound on files indexed during an inventory scan to prevent resource exhaustion.</p>
+            </div>
+            <select id="maxFilesSetting" class="cyber-select sm">
+              <option value="1000">1,000 files</option>
+              <option value="5000">5,000 files</option>
+              <option value="10000">10,000 files</option>
+              <option value="20000">20,000 files</option>
+            </select>
+          </div>
+
+          <div class="settings-footer">
+            <span id="settingsMessage">Settings persist in local SQLite (<code class="code-tag">rews.db</code>).</span>
+            <button class="cyber-btn cyber-btn-primary" id="saveSettings">Commit Heuristic Config</button>
+          </div>
+        </div>
+
+        <div class="cyber-card">
+          <div class="card-head">
+            <div>
+              <h2>Environment Telemetry</h2>
+              <p>Host runtime diagnostics</p>
+            </div>
+          </div>
+          <div class="info-grid">
+            <div><small>FRAMEWORK</small><b>Python Flask v3.0</b></div>
+            <div><small>DATA STORE</small><b>SQLite 3 (ACID Local)</b></div>
+            <div><small>INSPECTION ENGINE</small><b>SHA-256 + Heuristics</b></div>
+            <div><small>TELEMETRY</small><b>100% Air-Gapped Local</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CYBER FOOTER -->
+      <footer class="app-footer">
+        <div>REWS // RANSOMWARE EARLY WARNING SYSTEM · ACADEMIC DEFENSE PROTOTYPE</div>
+        <div class="footer-status"><span>SENTINEL ENGINE:</span> <b class="neon-green">ARMED</b></div>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<!-- TOAST NOTIFICATION HUD -->
+<div id="toast" class="toast"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
